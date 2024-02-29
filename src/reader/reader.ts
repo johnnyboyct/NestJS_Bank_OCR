@@ -2,12 +2,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { DIGITS, UNKNOWN } from '../assets/chars';
 import * as _ from 'lodash';
+import { Account } from '../account/account';
 
 interface Sign {
-  sign: string[];
   signArray: string[][];
   resultNumber?: string;
-  resultNumber2?: string;
 }
 
 export class Reader {
@@ -18,8 +17,10 @@ export class Reader {
   characterColumnHeight: number = 3;
   maxDigits: number = 9;
   signs: Sign[] = [];
+  fileResult: string[];
+  accounts: Account[] = [];
 
-  constructor(config: any) {
+  constructor(config?: any) {
     if (config) {
       this.fileToRead = config.fileToRead;
       this.linesPerToken = config.linesPerToken;
@@ -28,20 +29,20 @@ export class Reader {
       this.characterColumnHeight = config.characterColumnHeight;
       this.maxDigits = config.maxDigits;
     }
+    if (fs.existsSync(path.join(__dirname, this.fileToRead))) {
+      this.fileResult = this.readAndParse(this.fileToRead);
+    }
   }
 
-  async readAndParse(filePath: string): Promise<string[] | null> {
+  readAndParse(filePath: string): string[] | null {
     try {
-      const fileResult = await fs.promises.readFile(
+      const fileResult = fs.readFileSync(
         path.join(__dirname, filePath),
-        {
-          encoding: 'utf-8',
-        },
+        'utf-8',
       );
       return this.analyzeOCR(fileResult);
     } catch (error) {
-      console.error('Error: No file found under given path.');
-      return null;
+      throw new Error('Error reading file.');
     }
   }
 
@@ -61,6 +62,17 @@ export class Reader {
 
     return result;
   }
+
+  getAccounts(): Account[] {
+    const accounts: Account[] = [];
+    this.fileResult.forEach((result) => {
+      const account = new Account(result);
+      accounts.push(account);
+    });
+    this.accounts = accounts;
+    return accounts;
+  }
+
   validateLineArray(fileContent: string | null): string[] | string {
     if (fileContent === null || fileContent.length === 0) {
       return 'Empty file.';
@@ -70,17 +82,14 @@ export class Reader {
     if (splits.length === 0 || splits.length % this.linesPerToken != 0)
       return 'Invalid file.';
 
-    const isBlankLine = (s: string) =>
-      [this.lineBreakDelimiter, ''].includes(s);
-    const trimLineEnd = (s: string) =>
-      s.substring(0, s.length - (s.length % this.characterColumnWidth));
-
     const lines = splits
-      .filter((l) => !isBlankLine(l))
-      .map((l) => trimLineEnd(l));
+      .filter((l) => !this.isBlankLine(l))
+      .map((l) => this.trimLineEnd(l));
+
     if (!lines.length) return 'No valid lines found.';
     if (lines.length % this.characterColumnHeight != 0)
       return 'Invalid number of lines.';
+
     return lines;
   }
   analyzeRow(row: string[]): string {
@@ -111,7 +120,6 @@ export class Reader {
 
       const resultNumber = this.getNumber(signArray);
       const signObject: Sign = {
-        sign: sign,
         signArray: signArray,
         resultNumber: resultNumber,
       };
@@ -125,6 +133,7 @@ export class Reader {
     }
     return result;
   }
+
   getNumber(signArray: string[][]): string {
     const result = Object.keys(DIGITS).find((digit) => {
       const sign = DIGITS[digit];
@@ -137,5 +146,12 @@ export class Reader {
 
   isEmptySign(sign: string[]): boolean {
     return sign.every((s) => s === undefined || s === '');
+  }
+  isBlankLine(s: string): boolean {
+    return [this.lineBreakDelimiter, ''].includes(s);
+  }
+
+  trimLineEnd(s: string): string {
+    return s.substring(0, s.length - (s.length % this.characterColumnWidth));
   }
 }

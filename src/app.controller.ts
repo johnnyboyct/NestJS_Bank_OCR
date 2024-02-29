@@ -14,20 +14,22 @@ export class AppController {
     return this.appService.getHello();
   }
   @Get('/ocr')
-  async getOcr() {
+  getOcr() {
+    const output = [];
     const reader = new Reader(config);
-    return await reader.readAndParse(config.fileToRead).then((results) => {
-      const output = [];
-      if (!results) return null;
-      results.forEach((result) => {
-        const account = new Account(result);
-        let ambig = '';
-        if (account.hasAmbiguous && account.ambiguousAccountNumbers.length) {
-          ambig = '  [' + account.ambiguousAccountNumbers.join(', ') + ']';
-        }
-        output.push(account.accountNumber + ' ' + account.status + ambig);
-      });
-      return output.join('<br />');
+
+    if (!reader.fileResult) return null;
+
+    const accounts = reader.getAccounts();
+
+    accounts.forEach((account) => {
+      let ambig = '';
+      if (account.hasAmbiguous && account.ambiguousAccountNumbers.length) {
+        ambig = '  [' + account.ambiguousAccountNumbers.join(', ') + ']';
+      }
+      output.push(account.accountNumber + ' ' + account.status + ambig);
     });
+
+    return output.join('<br />');
   }
 }

@@ -2,10 +2,12 @@ export const PIPE = '|'; // pipe
 export const SPACE = ' '; // whitespace
 export const UNDERSCORE = '_'; // underscore
 export const UNKNOWN = '?'; // unknown
+
 export const ERR_STATUS = 'ERR';
 export const ILL_STATUS = 'ILL';
 export const AMB_STATUS = 'AMB';
 export const VALID_STATUS = '';
+
 export const STATUS_CODES = {
   ERR: ERR_STATUS,
   ILL: ILL_STATUS,
@@ -79,7 +81,9 @@ export const DIGITS = {
 export const REPLACEMENTS: { [key: string]: string[] } = {
   '0': ['8'],
   '1': ['7'],
+  '2': [],
   '3': ['9'],
+  '4': [],
   '5': ['9', '6'],
   '6': ['8', '5'],
   '7': ['1'],

@@ -1,4 +1,5 @@
 import { Account } from './account';
+import { REPLACEMENTS } from '../assets/chars';
 
 describe('Account', () => {
   //Good accounts
@@ -52,5 +53,13 @@ describe('Account', () => {
 
   it('should have ERR  status', () => {
     expect(errAccount.status == 'ERR').toBeTruthy();
+  });
+  it('should get Replacements  status', () => {
+    expect(
+      account.getReplacement('2').length == REPLACEMENTS[2].length,
+    ).toBeTruthy();
+    expect(
+      account.getReplacement('9').length == REPLACEMENTS[9].length,
+    ).toBeTruthy();
   });
 });

@@ -48,10 +48,11 @@ export class Account {
     const ambiguousAccountNumbers = [];
     const accountArr = accountNumber.split('');
     for (let i = 0; i < accountArr.length; i++) {
-      if (REPLACEMENTS[accountArr[i]] && REPLACEMENTS[accountArr[i]].length) {
-        for (let j = 0; j < REPLACEMENTS[accountArr[i]].length; j++) {
+      const replacements = this.getReplacement(accountArr[i]);
+      if (replacements && replacements.length) {
+        for (let j = 0; j < replacements.length; j++) {
           const newAcc = accountArr.slice();
-          newAcc[i] = REPLACEMENTS[accountArr[i]][j];
+          newAcc[i] = replacements[j];
           const newAccStr = newAcc.join('');
           if (this.checksum(newAccStr)) {
             ambiguousAccountNumbers.push(newAccStr);
@@ -61,6 +62,9 @@ export class Account {
     }
     this.ambiguousAccountNumbers = ambiguousAccountNumbers;
     return ambiguousAccountNumbers;
+  }
+  getReplacement(number: string): string[] {
+    return REPLACEMENTS[number];
   }
   checkIsNums(accountNumber: string) {
     return (accountNumber.match(/(\d){9}/gm) || []).length === 1;
@@ -92,6 +96,7 @@ checksum calculation:
     }
     const valid = sum % 11 === 0;
     this.checksumValid = valid;
+    if (valid) this.status = STATUS_CODES.VALID;
     return valid;
   }
 }
