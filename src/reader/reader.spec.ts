@@ -5,6 +5,11 @@ import * as path from 'path';
 
 describe('Reader', () => {
   const reader = new Reader(config);
+  const zero = [
+    [' ', '_', ' '],
+    ['|', ' ', '|'],
+    ['|', '_', '|'],
+  ];
   it('should be defined', () => {
     expect(reader).toBeDefined();
   });
@@ -45,5 +50,13 @@ describe('Reader', () => {
     ];
     const res = reader.analyzeRow(accountNumberCharacters);
     expect(res == accounNumber).toBeTruthy();
+  });
+  it('should getNumber 0', async () => {
+    const res = reader.getNumber(zero);
+    expect(res == '0').toBeTruthy();
+  });
+  it('should getNumber 0', async () => {
+    const res = reader.isEmptySign(zero[0]);
+    expect(!res).toBeTruthy();
   });
 });

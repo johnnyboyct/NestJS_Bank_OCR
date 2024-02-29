@@ -1,6 +1,14 @@
 import * as fs from 'fs';
 import * as path from 'path';
-// import { EntryParser } from '../entry-parser/entry-parser';
+import { DIGITS, UNKNOWN } from '../assets/chars';
+import * as _ from 'lodash';
+
+interface Sign {
+  sign: string[];
+  signArray: string[][];
+  resultNumber?: string;
+  resultNumber2?: string;
+}
 
 export class Reader {
   fileToRead: string = '../assets/nums.txt';
@@ -9,18 +17,8 @@ export class Reader {
   characterColumnWidth: number = 3;
   characterColumnHeight: number = 3;
   maxDigits: number = 9;
-  digits: { [key: string]: string[] } = {
-    '1': ['   ', '  |', '  |'],
-    '2': [' _ ', ' _|', '|_ '],
-    '3': [' _ ', ' _|', ' _|'],
-    '4': ['   ', '|_|', '  |'],
-    '5': [' _ ', '|_ ', ' _|'],
-    '6': [' _ ', '|_ ', '|_|'],
-    '7': [' _ ', '  |', '  |'],
-    '8': [' _ ', '|_|', '|_|'],
-    '9': [' _ ', '|_|', ' _|'],
-    '0': [' _ ', '| |', '|_|'],
-  };
+  signs: Sign[] = [];
+
   constructor(config: any) {
     if (config) {
       this.fileToRead = config.fileToRead;
@@ -95,33 +93,48 @@ export class Reader {
         row[1].substring(startFrom, startFrom + this.characterColumnWidth),
         row[2].substring(startFrom, startFrom + this.characterColumnWidth),
       ];
+      const signArray = [
+        row[0]
+          .substring(startFrom, startFrom + this.characterColumnWidth)
+          .split(''),
+        row[1]
+          .substring(startFrom, startFrom + this.characterColumnWidth)
+          .split(''),
+        row[2]
+          .substring(startFrom, startFrom + this.characterColumnWidth)
+          .split(''),
+      ];
 
       if (this.isEmptySign(sign)) {
         continue;
       }
 
-      const resultNumber = this.signToNumber(sign);
+      const resultNumber = this.getNumber(signArray);
+      const signObject: Sign = {
+        sign: sign,
+        signArray: signArray,
+        resultNumber: resultNumber,
+      };
+      this.signs.push(signObject);
+
       if (resultNumber === undefined) {
         return 'Error in data.';
       } else {
         result += resultNumber;
       }
     }
-
     return result;
   }
-  signToNumber(sign: string[]): string | undefined {
-    const result = Object.keys(this.digits).find((k) =>
-      this.areStringArraysEqual(sign, this.digits[k]),
-    );
-    return result || '?';
+  getNumber(signArray: string[][]): string {
+    const result = Object.keys(DIGITS).find((digit) => {
+      const sign = DIGITS[digit];
+      if (_.isEqual(signArray, sign)) {
+        return digit;
+      }
+    });
+    return result || UNKNOWN;
   }
 
-  areStringArraysEqual(a: string[], b: string[]): boolean {
-    const isEqual =
-      a.length === b.length && a.every((val, index) => val === b[index]);
-    return isEqual;
-  }
   isEmptySign(sign: string[]): boolean {
     return sign.every((s) => s === undefined || s === '');
   }

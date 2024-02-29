@@ -21,7 +21,11 @@ export class AppController {
       if (!results) return null;
       results.forEach((result) => {
         const account = new Account(result);
-        output.push(account.accountNumber + ' ' + account.status);
+        let ambig = '';
+        if (account.hasAmbiguous && account.ambiguousAccountNumbers.length) {
+          ambig = '  [' + account.ambiguousAccountNumbers.join(', ') + ']';
+        }
+        output.push(account.accountNumber + ' ' + account.status + ambig);
       });
       return output.join('<br />');
     });
